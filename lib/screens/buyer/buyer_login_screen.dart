@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'seller_forgot_password_screen.dart';
-import 'seller_create_account_screen.dart';
-import 'seller_dashboard_screen.dart';
+import 'buyer_forgot_password_screen.dart';
+import 'buyer_create_account_screen.dart';
+import 'buyer_dashboard_screen.dart';
 
-class SellerLoginScreen extends StatefulWidget {
-  const SellerLoginScreen({super.key});
+class BuyerLoginScreen extends StatefulWidget {
+  const BuyerLoginScreen({super.key});
 
   @override
-  State<SellerLoginScreen> createState() => _SellerLoginScreenState();
+  State<BuyerLoginScreen> createState() => _BuyerLoginScreenState();
 }
 
-class _SellerLoginScreenState extends State<SellerLoginScreen> {
+class _BuyerLoginScreenState extends State<BuyerLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
@@ -71,7 +71,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
                         ),
                       ),
                       Text(
-                        'Seller Portal',
+                        'Buyer Portal',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -94,7 +94,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Sign in to manage your listings',
+                'Sign in to your dealer account',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -222,8 +222,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const SellerForgotPasswordScreen(),
+                          builder: (context) => const BuyerForgotPasswordScreen(),
                         ),
                       );
                     },
@@ -248,7 +247,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SellerDashboardScreen(),
+                        builder: (context) => const BuyerDashboardScreen(),
                       ),
                     );
                   },
@@ -305,9 +304,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        // Handle Google login
-                      },
+                      onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                         side: const BorderSide(color: Colors.grey),
@@ -335,9 +332,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        // Handle Facebook login
-                      },
+                      onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                         side: const BorderSide(color: Colors.grey),
@@ -389,7 +384,7 @@ class _SellerLoginScreenState extends State<SellerLoginScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const SellerCreateAccountScreen(),
+                                    const BuyerCreateAccountScreen(),
                               ),
                             );
                           },
