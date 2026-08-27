@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
-import 'seller_contact_information_screen.dart';
+import '../seller_upload_images_screen.dart';
 
-class SellerPickupLocationScreen extends StatefulWidget {
-  const SellerPickupLocationScreen({super.key});
+class SellerEquipmentStepSolarPanels extends StatefulWidget {
+  const SellerEquipmentStepSolarPanels({super.key});
 
   @override
-  State<SellerPickupLocationScreen> createState() =>
-      _SellerPickupLocationScreenState();
+  State<SellerEquipmentStepSolarPanels> createState() =>
+      _SellerEquipmentStepSolarPanelsState();
 }
 
-class _SellerPickupLocationScreenState
-    extends State<SellerPickupLocationScreen> {
-  final TextEditingController _cityController = TextEditingController();
-  final TextEditingController _areaController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+class _SellerEquipmentStepSolarPanelsState
+    extends State<SellerEquipmentStepSolarPanels> {
+  final TextEditingController _panelsCountController = TextEditingController();
+  final TextEditingController _wattsController = TextEditingController();
+  final TextEditingController _priceDemandController = TextEditingController();
+  String _selectedCondition = 'Scrap';
+
+  final List<String> _conditions = [
+    'Scrap',
+    'Bullet Hit',
+    'Shatter Glass',
+    'Good Conditions',
+    'Other',
+  ];
 
   Widget _buildTextField({
     required String label,
     required String hint,
     required TextEditingController controller,
-    required IconData icon,
-    bool isMultiline = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,43 +37,92 @@ class _SellerPickupLocationScreenState
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
+            color: Color(0xFF18181B),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF9F9F9),
+            color: const Color(0xFFF9FAFB),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
           child: TextField(
             controller: controller,
-            maxLines: isMultiline ? 4 : 1,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+              hintStyle: const TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 13,
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 12,
               ),
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(left: 12, right: 8),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: Colors.grey.shade400,
-                ),
-              ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 0,
-                minHeight: 0,
-              ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  Widget _buildConditionOptions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Panel Condition',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF18181B),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _conditions.map((condition) {
+            final isSelected = _selectedCondition == condition;
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedCondition = condition;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF0FDF4) : Colors.white,
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFF00A63E)
+                        : const Color(0xFFE5E7EB),
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  condition,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isSelected
+                        ? const Color(0xFF00A63E)
+                        : const Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -99,7 +155,7 @@ class _SellerPickupLocationScreenState
         ),
         centerTitle: true,
         title: const Text(
-          'Pickup Location',
+          'Equipment Details',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -112,7 +168,10 @@ class _SellerPickupLocationScreenState
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -121,7 +180,7 @@ class _SellerPickupLocationScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Step 5 of 7',
+                          'Step 2 of 7',
                           style: TextStyle(
                             fontSize: 11,
                             color: Color(0xFF71717A),
@@ -129,7 +188,7 @@ class _SellerPickupLocationScreenState
                           ),
                         ),
                         Text(
-                          '71%',
+                          '29%',
                           style: TextStyle(
                             fontSize: 11,
                             color: Color(0xFF00A63E),
@@ -148,7 +207,7 @@ class _SellerPickupLocationScreenState
                             height: 4,
                             margin: EdgeInsets.only(right: index < 6 ? 6 : 0),
                             decoration: BoxDecoration(
-                              color: index <= 4
+                              color: index <= 1
                                   ? const Color(0xFF00A63E)
                                   : const Color(0xFFE5E7EB),
                               borderRadius: BorderRadius.circular(2),
@@ -157,32 +216,63 @@ class _SellerPickupLocationScreenState
                         );
                       }),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                    // City
+                    // Category Banner / Capsule
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.solar_power_outlined,
+                            color: Color(0xFF00A63E),
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Solar Panels',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF00A63E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Number of Panels
                     _buildTextField(
-                      label: 'City',
-                      hint: 'Karachi',
-                      controller: _cityController,
-                      icon: Icons.location_on_outlined,
+                      label: 'Number of Panels',
+                      hint: 'e.g. 200',
+                      controller: _panelsCountController,
                     ),
 
-                    // Area / Locality
+                    // Watts per Panel (W)
                     _buildTextField(
-                      label: 'Area / Locality (optional)',
-                      hint: 'DHA Phase 7, karachi',
-                      controller: _areaController,
-                      icon: Icons.location_on_outlined,
+                      label: 'Watts per Panel (W)',
+                      hint: 'e.g. 400',
+                      controller: _wattsController,
                     ),
 
-                    // Complete Address
+                    // Price Demand
                     _buildTextField(
-                      label: 'Complete Address',
-                      hint: 'Any defects, special conditions, original warranty info...',
-                      controller: _addressController,
-                      icon: Icons.location_on_outlined,
-                      isMultiline: true,
+                      label: 'Price Demand',
+                      hint: 'Rs 45, 000 000',
+                      controller: _priceDemandController,
                     ),
+
+                    // Panel Condition
+                    _buildConditionOptions(),
                   ],
                 ),
               ),
@@ -226,7 +316,9 @@ class _SellerPickupLocationScreenState
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const SellerContactInformationScreen(),
+                                const SellerUploadImagesScreen(
+                              selectedCategory: 'Solar Panels',
+                            ),
                           ),
                         );
                       },
@@ -258,9 +350,9 @@ class _SellerPickupLocationScreenState
 
   @override
   void dispose() {
-    _cityController.dispose();
-    _areaController.dispose();
-    _addressController.dispose();
+    _panelsCountController.dispose();
+    _wattsController.dispose();
+    _priceDemandController.dispose();
     super.dispose();
   }
 }
