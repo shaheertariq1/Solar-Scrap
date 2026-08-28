@@ -1,31 +1,45 @@
 import 'package:flutter/material.dart';
 import '../seller_upload_images_screen.dart';
-import 'seller_equipment_step_others.dart';
 
-class SellerEquipmentStepStructure extends StatefulWidget {
+class SellerEquipmentStepOthers extends StatefulWidget {
   final bool isCompleteSolarSystem;
 
-  const SellerEquipmentStepStructure({
+  const SellerEquipmentStepOthers({
     super.key,
-    this.isCompleteSolarSystem = false,
+    this.isCompleteSolarSystem = true,
   });
 
   @override
-  State<SellerEquipmentStepStructure> createState() =>
-      _SellerEquipmentStepStructureState();
+  State<SellerEquipmentStepOthers> createState() =>
+      _SellerEquipmentStepOthersState();
 }
 
-class _SellerEquipmentStepStructureState
-    extends State<SellerEquipmentStepStructure> {
-  String _selectedStructureType = 'Elevated';
-  String _selectedStructureMetal = 'AL';
-
+class _SellerEquipmentStepOthersState extends State<SellerEquipmentStepOthers> {
+  final TextEditingController _commentsController = TextEditingController();
   final TextEditingController _priceDemandController = TextEditingController();
+  String _totalPriceDemand = 'Rs, 64,00000';
+
+  @override
+  void initState() {
+    super.initState();
+    _priceDemandController.addListener(() {
+      setState(() {
+        if (_priceDemandController.text.isNotEmpty) {
+          _totalPriceDemand = _priceDemandController.text.startsWith('Rs')
+              ? _priceDemandController.text
+              : 'Rs, ${_priceDemandController.text}';
+        } else {
+          _totalPriceDemand = 'Rs, 64,00000';
+        }
+      });
+    });
+  }
 
   Widget _buildTextField({
     required String label,
     required String hint,
     required TextEditingController controller,
+    bool isMultiline = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,6 +54,7 @@ class _SellerEquipmentStepStructureState
         ),
         const SizedBox(height: 8),
         Container(
+          height: isMultiline ? 110 : null,
           decoration: BoxDecoration(
             color: const Color(0xFFF9FAFB),
             borderRadius: BorderRadius.circular(12),
@@ -47,6 +62,10 @@ class _SellerEquipmentStepStructureState
           ),
           child: TextField(
             controller: controller,
+            maxLines: isMultiline ? null : 1,
+            expands: isMultiline,
+            textAlignVertical:
+                isMultiline ? TextAlignVertical.top : TextAlignVertical.center,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(
@@ -61,73 +80,7 @@ class _SellerEquipmentStepStructureState
             ),
           ),
         ),
-        const SizedBox(height: 14),
-      ],
-    );
-  }
-
-  Widget _buildOptionButtons({
-    required String label,
-    required List<String> options,
-    required String selectedValue,
-    required Function(String) onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF18181B),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: options.map((option) {
-            final isSelected = selectedValue == option;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    onChanged(option);
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  margin: EdgeInsets.only(right: option != options.last ? 8 : 0),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFFE6F9ED) : Colors.white,
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF00A63E)
-                          : const Color(0xFFE5E7EB),
-                      width: 1.09,
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected
-                            ? const Color(0xFF00A63E)
-                            : const Color(0xFF6B7280),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -160,7 +113,7 @@ class _SellerEquipmentStepStructureState
         ),
         centerTitle: true,
         title: const Text(
-          'Structure Details',
+          'Others Components',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -178,22 +131,20 @@ class _SellerEquipmentStepStructureState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Progress indicator
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    widget.isCompleteSolarSystem
-                        ? 'Step 5 of 5 (Complete System)'
-                        : 'Step 2 of 7',
-                    style: const TextStyle(
+                    'Step 4 of 4',
+                    style: TextStyle(
                       fontSize: 11,
                       color: Color(0xFF71717A),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   Text(
-                    widget.isCompleteSolarSystem ? '100%' : '29%',
-                    style: const TextStyle(
+                    '100%',
+                    style: TextStyle(
                       fontSize: 11,
                       color: Color(0xFF00A63E),
                       fontWeight: FontWeight.w600,
@@ -203,83 +154,66 @@ class _SellerEquipmentStepStructureState
               ),
               const SizedBox(height: 8),
 
-              // Progress bar
+              // 4-segment progress bar (100% filled green)
               Row(
-                children: List.generate(widget.isCompleteSolarSystem ? 5 : 7, (index) {
+                children: List.generate(4, (index) {
                   return Expanded(
                     child: Container(
                       height: 4,
-                      margin: EdgeInsets.only(
-                          right: index < (widget.isCompleteSolarSystem ? 4 : 6)
-                              ? 6
-                              : 0),
+                      margin: EdgeInsets.only(right: index < 3 ? 6 : 0),
                       decoration: BoxDecoration(
-                        color: index <= (widget.isCompleteSolarSystem ? 4 : 1)
-                            ? const Color(0xFF00A63E)
-                            : const Color(0xFFE5E7EB),
+                        color: const Color(0xFF00A63E),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   );
                 }),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // Category Banner / Capsule
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE6F9ED),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.grid_view,
-                      color: Color(0xFF00A63E),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.isCompleteSolarSystem
-                          ? 'Complete System · Structure'
-                          : 'Structure',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF00A63E),
-                      ),
-                    ),
-                  ],
-                ),
+              // Comments (optional)
+              _buildTextField(
+                label: 'Comments (optional)',
+                hint: 'e.g communications devices, switch gears ...',
+                controller: _commentsController,
+                isMultiline: true,
               ),
-                    const SizedBox(height: 16),
-
-                    // Structure Type
-                    _buildOptionButtons(
-                      label: 'Structure Type',
-                      options: ['Elevated', 'Non Elevated'],
-                      selectedValue: _selectedStructureType,
-                      onChanged: (val) => _selectedStructureType = val,
-                    ),
-
-                    // Structure Metal
-                    _buildOptionButtons(
-                      label: 'Structure Metal',
-                      options: ['AL', 'GL', 'Hot dip'],
-                      selectedValue: _selectedStructureMetal,
-                      onChanged: (val) => _selectedStructureMetal = val,
-                    ),
 
               // Price Demand
               _buildTextField(
                 label: 'Price Demand',
                 hint: 'Rs, 64,00000',
                 controller: _priceDemandController,
+              ),
+
+              // Total Price Demand
+              const Text(
+                'Total Price Demand',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF18181B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Center(
+                  child: Text(
+                    _totalPriceDemand,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -328,27 +262,15 @@ class _SellerEquipmentStepStructureState
                       ),
                       child: ElevatedButton(
                         onPressed: () {
-                          if (widget.isCompleteSolarSystem) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SellerEquipmentStepOthers(
-                                  isCompleteSolarSystem: true,
-                                ),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const SellerUploadImagesScreen(
+                                selectedCategory: 'Complete Solar System',
                               ),
-                            );
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SellerUploadImagesScreen(
-                                  selectedCategory: 'Structure',
-                                ),
-                              ),
-                            );
-                          }
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
@@ -382,6 +304,7 @@ class _SellerEquipmentStepStructureState
 
   @override
   void dispose() {
+    _commentsController.dispose();
     _priceDemandController.dispose();
     super.dispose();
   }
