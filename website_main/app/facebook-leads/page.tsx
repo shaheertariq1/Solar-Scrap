@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import DoubleScrollContainer from "@/components/DoubleScrollContainer";
-import { getAdminLeads, updateAdminLead, createAdminLead } from "@/lib/admin-api";
+import { getAdminLeads, updateAdminLead, createAdminLead, syncAdminLeadsFromSheets } from "@/lib/admin-api";
 import { getSession, getAvatarUrl } from "@/lib/auth";
 
 interface FacebookLead {
@@ -49,12 +49,19 @@ interface FacebookLead {
   status: "New" | "Contacted" | "Follow-up" | "Converted";
   notes?: string[];
   source: string;
+  category?: string;
+  quantity?: string;
+  urgency?: string;
+  platform?: string;
+  campaign_name?: string;
+  form_name?: string;
 }
 
 export default function FacebookLeadsPage() {
   const router = useRouter();
   const [leads, setLeads] = useState<FacebookLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [adminName, setAdminName] = useState("Admin Platform");
   const [adminPhotoUrl, setAdminPhotoUrl] = useState<string | null>(null);
@@ -93,86 +100,39 @@ export default function FacebookLeadsPage() {
               city: l.city,
               area: l.area,
               receivedDate: l.received_date,
-              status: l.status as any,
+              status: (l.status as any) || "New",
               source: l.source,
               notes: l.notes,
+              category: l.category,
+              quantity: l.quantity,
+              urgency: l.urgency,
+              platform: l.platform,
+              campaign_name: l.campaign_name,
+              form_name: l.form_name,
             }))
           );
         } else {
-          // Fallback seeded leads if emulator is empty (matches Figma screenshot 3)
-          setLeads([
-            {
-              id: "lead_demo_01",
-              leadId: "FB001",
-              name: "Kamran Sheikh",
-              phone: "+92 300 1112222",
-              email: "kamran@gmail.com",
-              city: "Karachi",
-              area: "Clifton",
-              receivedDate: "2024-12-07",
-              status: "New",
-              source: "Facebook Campaign",
-              notes: ["Customer submitted inquiry for 120x solar panels."],
-            },
-            {
-              id: "lead_demo_02",
-              leadId: "FB002",
-              name: "Fatima Zahra",
-              phone: "+92 321 3334444",
-              email: "fatima@yahoo.com",
-              city: "Lahore",
-              area: "Johar Town",
-              receivedDate: "2024-12-07",
-              status: "New",
-              source: "Facebook Campaign",
-              notes: ["Inverter 15kW + battery bank ready for inspection."],
-            },
-            {
-              id: "lead_demo_03",
-              leadId: "FB003",
-              name: "Imran Siddiqui",
-              phone: "+92 333 5556666",
-              email: "imran@hotmail.com",
-              city: "Islamabad",
-              area: "G-11",
-              receivedDate: "2024-12-07",
-              status: "Contacted",
-              source: "Facebook Campaign",
-              notes: ["400x Mono PERC panels. Awaiting site visit confirmation."],
-            },
-            {
-              id: "lead_demo_04",
-              leadId: "FB004",
-              name: "Zainab Hassan",
-              phone: "+92 312 7778888",
-              email: "zainab@gmail.com",
-              city: "Karachi",
-              area: "DHA",
-              receivedDate: "2024-12-07",
-              status: "Follow-up",
-              source: "Facebook Campaign",
-              notes: ["Heavy DC Copper Cables ~500kg."],
-            },
-            {
-              id: "lead_demo_05",
-              leadId: "FB005",
-              name: "Ahmed Raza",
-              phone: "+92 345 9990000",
-              email: "ahmed@live.com",
-              city: "Rawalpindi",
-              area: "Bahria Town",
-              receivedDate: "2024-12-07",
-              status: "Converted",
-              source: "Facebook Campaign",
-              notes: ["Narada Lithium 48V Battery Bank scrap offer."],
-            },
-          ]);
+          setLeads([]);
         }
       })
       .catch((err) => {
         console.error("Error loading leads from API:", err);
       })
       .finally(() => setIsLoading(false));
+  };
+
+  const handleSyncMetaLeads = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await syncAdminLeadsFromSheets();
+      showToast(`✅ Synced! ${res.synced} new leads added (${res.total_leads} total in database)`);
+      loadLeads();
+    } catch (err: any) {
+      console.error("Error syncing leads:", err);
+      showToast(err.message || "Failed to sync Meta leads");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleSimulateLead = async () => {
@@ -351,7 +311,10 @@ export default function FacebookLeadsPage() {
         lead.phone.toLowerCase().includes(q) ||
         lead.city.toLowerCase().includes(q) ||
         lead.area.toLowerCase().includes(q) ||
-        lead.leadId.toLowerCase().includes(q);
+        lead.leadId.toLowerCase().includes(q) ||
+        (lead.category && lead.category.toLowerCase().includes(q)) ||
+        (lead.quantity && lead.quantity.toLowerCase().includes(q)) ||
+        (lead.campaign_name && lead.campaign_name.toLowerCase().includes(q));
       if (!match) return false;
     }
     return true;
@@ -502,14 +465,29 @@ export default function FacebookLeadsPage() {
           {/* Main Body */}
           <main className="flex-1 p-5 sm:p-7 md:p-8 space-y-6 overflow-y-auto">
             
-            {/* Header Title */}
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-                Facebook Leads
-              </h1>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Track and follow up on leads received from Facebook campaigns.
-              </p>
+            {/* Header Title with Sync Action */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+                  Facebook Leads
+                </h1>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Track, sync, and follow up on real leads received from Meta & Facebook campaigns.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSyncMetaLeads}
+                  disabled={isSyncing}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[#009845] hover:bg-[#00823b] text-white text-xs font-semibold rounded-xl shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+                  title="Sync leads from Meta Google Sheets"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                  <span>{isSyncing ? "Syncing Meta Leads..." : "Sync Meta Leads"}</span>
+                </button>
+              </div>
             </div>
 
             {/* 5 Stat Cards Row (Exact as media_1787855792122.png) */}
@@ -579,7 +557,7 @@ export default function FacebookLeadsPage() {
                       <th className="py-3.5 px-4 sm:px-5">LEAD ID</th>
                       <th className="py-3.5 px-4">NAME</th>
                       <th className="py-3.5 px-4">PHONE</th>
-                      <th className="py-3.5 px-4">EMAIL</th>
+                      <th className="py-3.5 px-4">SCRAP DETAILS</th>
                       <th className="py-3.5 px-4">CITY</th>
                       <th className="py-3.5 px-4">AREA</th>
                       <th className="py-3.5 px-4">RECEIVED</th>
@@ -605,14 +583,36 @@ export default function FacebookLeadsPage() {
                           </span>
                         </td>
 
-                        {/* Phone */}
+                        {/* Phone with WhatsApp shortcut */}
                         <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-xs">
-                          {lead.phone}
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-medium text-gray-800">{lead.phone}</span>
+                            {lead.phone && (
+                              <a
+                                href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${lead.name}, regarding your inquiry on Solar Scrap...`)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#009845] hover:text-emerald-700 p-0.5 rounded transition"
+                                title="Chat on WhatsApp"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
                         </td>
 
-                        {/* Email */}
-                        <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-xs">
-                          {lead.email}
+                        {/* Scrap Details */}
+                        <td className="py-4 px-4 text-gray-700 whitespace-nowrap text-xs">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-900">
+                              {lead.quantity || lead.category || "Solar Scrap"}
+                            </span>
+                            {lead.category && lead.quantity && (
+                              <span className="text-[11px] text-gray-500">
+                                {lead.category}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         {/* City */}
@@ -834,10 +834,30 @@ export default function FacebookLeadsPage() {
                 <span className="text-[#8F9CA9] font-normal">Phone</span>
                 <span className="font-bold text-gray-900 text-right">{selectedLead.phone}</span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
-                <span className="text-[#8F9CA9] font-normal">Email</span>
-                <span className="font-bold text-gray-900 text-right">{selectedLead.email}</span>
-              </div>
+              {selectedLead.email ? (
+                <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
+                  <span className="text-[#8F9CA9] font-normal">Email</span>
+                  <span className="font-bold text-gray-900 text-right">{selectedLead.email}</span>
+                </div>
+              ) : null}
+              {selectedLead.category && (
+                <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
+                  <span className="text-[#8F9CA9] font-normal">Scrap Item</span>
+                  <span className="font-bold text-gray-900 text-right">{selectedLead.category}</span>
+                </div>
+              )}
+              {selectedLead.quantity && (
+                <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
+                  <span className="text-[#8F9CA9] font-normal">Quantity / Panels</span>
+                  <span className="font-bold text-[#009845] text-right">{selectedLead.quantity}</span>
+                </div>
+              )}
+              {selectedLead.urgency && (
+                <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
+                  <span className="text-[#8F9CA9] font-normal">Urgency / Timeline</span>
+                  <span className="font-bold text-gray-900 text-right">{selectedLead.urgency}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
                 <span className="text-[#8F9CA9] font-normal">City</span>
                 <span className="font-bold text-gray-900 text-right">{selectedLead.city}</span>
@@ -846,13 +866,19 @@ export default function FacebookLeadsPage() {
                 <span className="text-[#8F9CA9] font-normal">Area</span>
                 <span className="font-bold text-gray-900 text-right">{selectedLead.area}</span>
               </div>
+              {selectedLead.form_name && (
+                <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
+                  <span className="text-[#8F9CA9] font-normal">Meta Form</span>
+                  <span className="font-medium text-gray-700 text-right">{selectedLead.form_name}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between py-3 border-b border-gray-100/80">
                 <span className="text-[#8F9CA9] font-normal">Lead Source</span>
                 <span className="font-bold text-gray-900 text-right">{selectedLead.source || "Facebook Campaign"}</span>
               </div>
               <div className="flex items-center justify-between py-3">
                 <span className="text-[#8F9CA9] font-normal">Received Date</span>
-                <span className="font-bold text-gray-900 text-right">{selectedLead.receivedDate || "2024-12-07"}</span>
+                <span className="font-bold text-gray-900 text-right">{selectedLead.receivedDate || "2026-04-01"}</span>
               </div>
             </div>
 
@@ -880,13 +906,28 @@ export default function FacebookLeadsPage() {
                 Update Status
               </button>
 
-              <button
-                type="button"
-                onClick={() => setIsDetailsOpen(false)}
-                className="w-full h-10 px-3 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs"
-              >
-                Close
-              </button>
+              {selectedLead.phone ? (
+                <a
+                  href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello ${selectedLead.name}, regarding your inquiry on Solar Scrap...`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full h-10 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-2xs"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDetailsOpen(false);
+                    handleOpenDelete(selectedLead);
+                  }}
+                  className="w-full h-10 px-3 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs"
+                >
+                  Delete Lead
+                </button>
+              )}
             </div>
           </div>
         </div>

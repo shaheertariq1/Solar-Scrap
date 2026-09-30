@@ -30,6 +30,14 @@ class Settings(BaseSettings):
         "*",
     ]
 
+    # Meta / Facebook Lead Google Sheets (Sync Sources)
+    META_LEAD_SHEET_URLS: List[str] = [
+        "https://docs.google.com/spreadsheets/d/1kM9utaJQ0f94UxK-HYcUgcuOxxTm5-XnSMdfacDzTUY/export?format=csv&gid=0",
+        "https://docs.google.com/spreadsheets/d/1mzU8XwBpEc7WW9-F8zhpQJxI52vpSbGogQPFc1mimsQ/export?format=csv&gid=0",
+        "https://docs.google.com/spreadsheets/d/1Trk9Ugipzc78g5ND_dfUSzGEDyunb8TqOz7Bh7NKN5A/export?format=csv&gid=0",
+        "https://docs.google.com/spreadsheets/d/1Trk9Ugipzc78g5ND_dfUSzGEDyunb8TqOz7Bh7NKN5A/export?format=csv&gid=1179489281",
+    ]
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),
         env_file_encoding="utf-8",

@@ -119,6 +119,12 @@ export interface AdminLeadItem {
   status: "New" | "Contacted" | "Follow-up" | "Converted";
   source: string;
   notes: string[];
+  category?: string;
+  quantity?: string;
+  urgency?: string;
+  platform?: string;
+  campaign_name?: string;
+  form_name?: string;
 }
 
 export interface AdminSellerPostItem {

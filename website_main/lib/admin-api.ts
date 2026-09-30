@@ -131,6 +131,30 @@ export async function updateAdminLead(
 }
 
 /**
+ * Trigger sync of leads from Meta Google Spreadsheets
+ */
+export async function syncAdminLeadsFromSheets(): Promise<{
+  success: boolean;
+  synced: number;
+  updated: number;
+  total_scanned: number;
+  total_leads: number;
+}> {
+  const response = await fetch(`${API_BASE}/admin/leads/sync-sheets`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to sync leads from Meta Google Sheets");
+  }
+
+  return response.json();
+}
+
+
+/**
  * Simulate or manually create a Meta/Facebook lead
  */
 export async function createAdminLead(

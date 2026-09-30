@@ -84,6 +84,12 @@ class AdminLeadItem(BaseModel):
     status: str  # "New" | "Contacted" | "Follow-up" | "Converted"
     source: str
     notes: List[str] = []
+    category: Optional[str] = None
+    quantity: Optional[str] = None
+    urgency: Optional[str] = None
+    platform: Optional[str] = None
+    campaign_name: Optional[str] = None
+    form_name: Optional[str] = None
 
 
 class UpdateLeadRequest(BaseModel):

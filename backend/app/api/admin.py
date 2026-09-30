@@ -24,6 +24,7 @@ from app.schemas.admin import (
 from app.api.auth import get_current_user
 from app.api.notifications import create_user_notification, create_admin_notification
 from app.core.firebase import get_firestore_db
+from app.services.sheets_sync import sync_meta_leads_from_sheets
 
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -318,6 +319,14 @@ async def get_facebook_leads(
     leads_ref = db.collection("facebook_leads")
     docs = list(leads_ref.stream())
 
+    # If Firestore has 0 leads, attempt initial auto-sync from configured sheets
+    if len(docs) == 0:
+        try:
+            await sync_meta_leads_from_sheets(db)
+            docs = list(leads_ref.stream())
+        except Exception as e:
+            print(f"[Admin Leads] Initial auto-sync error: {e}")
+
     results = []
     for doc in docs:
         data = doc.to_dict() or {}
@@ -331,14 +340,35 @@ async def get_facebook_leads(
                 email=data.get("email", ""),
                 city=data.get("city", "Karachi"),
                 area=data.get("area", ""),
-                received_date=_format_dt(created) or "2024-12-07",
+                received_date=_format_dt(created) or data.get("received_date") or "2026-04-01",
                 status=data.get("status", "New"),
                 source=data.get("source", "Facebook Campaign"),
                 notes=data.get("notes", []),
+                category=data.get("category"),
+                quantity=data.get("quantity"),
+                urgency=data.get("urgency"),
+                platform=data.get("platform"),
+                campaign_name=data.get("campaign_name"),
+                form_name=data.get("form_name"),
             )
         )
 
+    # Sort results by received_date descending, then id descending
+    results.sort(key=lambda x: (x.received_date or "", x.id or ""), reverse=True)
     return results
+
+
+@router.post("/leads/sync-sheets")
+async def sync_leads_from_sheets_endpoint(
+    current_user: UserProfile = Depends(get_current_user),
+):
+    """
+    Trigger real-time synchronization of Meta / Facebook leads from configured Google Sheets into Firestore.
+    """
+    db = get_firestore_db()
+    result = await sync_meta_leads_from_sheets(db)
+    return result
+
 
 
 @router.patch("/leads/{lead_id}")
